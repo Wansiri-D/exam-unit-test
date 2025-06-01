@@ -13,5 +13,8 @@
   "description": "Examination i kurs om testning",
   "devDependencies": {
     "jest": "^29.7.0"
+  },
+  "dependencies": {
+    "joi": "^17.13.3"
   }
 }
