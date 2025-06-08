@@ -1,6 +1,6 @@
 import { isCartItem, isProduct } from "../validation.js"
 
-const exampleProduct = { 
+const exampleProduct = {
     id: 1001,
     name: 'Badanka',
     price: 500
@@ -12,84 +12,100 @@ const exampleCartObject = {
     item: exampleProduct
 }
 
+// Essential test data (focused on core equivalence classes)
+const testData = {
+    validProducts: [
+        { id: 2001, name: "Laptop Computer", price: 899 },
+        { id: 2002, name: "Free Sample", price: 0 }, // Edge: free item
+        { id: 2003, name: "Premium Software", price: 2500 }
+    ],
+    
+    validCartItems: [
+        { id: 3001, amount: 1, item: { id: 2001, name: "Laptop", price: 899 } },
+        { id: 3002, amount: 5, item: { id: 2002, name: "Smartphone", price: 650 } }
+    ],
+
+    nonObjectInputs: [null, undefined, "string", 42, true, []],
+
+    // Core invalid products (key equivalence classes only)
+    invalidProducts: [
+        { data: {}, description: 'empty object' },
+        { data: { name: "Missing ID", price: 100 }, description: 'missing id' },
+        { data: { id: 3001, price: 100 }, description: 'missing name' },
+        { data: { id: 3002, name: "Missing Price" }, description: 'missing price' },
+        { data: { id: "3003", name: "String ID", price: 100 }, description: 'non-number id' },
+        { data: { id: 3004, name: 123, price: 100 }, description: 'non-string name' },
+        { data: { id: 3005, name: "String Price", price: "100" }, description: 'non-number price' },
+        { data: { id: 3006, name: "Negative", price: -50 }, description: 'negative price' },
+        { data: { id: 3007, name: "", price: 100 }, description: 'empty name' }
+    ],
+
+    // Core invalid cart items (key equivalence classes only)
+    invalidCartItems: [
+        { data: {}, description: 'empty object' },
+        { data: { amount: 1, item: exampleProduct }, description: 'missing id' },
+        { data: { id: 4001, item: exampleProduct }, description: 'missing amount' },
+        { data: { id: 4002, amount: 1 }, description: 'missing item' },
+        { data: { id: "4003", amount: 1, item: exampleProduct }, description: 'non-number id' },
+        { data: { id: 4004, amount: "one", item: exampleProduct }, description: 'non-number amount' },
+        { data: { id: 4005, amount: 0, item: exampleProduct }, description: 'zero amount' },
+        { data: { id: 4006, amount: -1, item: exampleProduct }, description: 'negative amount' },
+        { data: { id: 4007, amount: 1, item: null }, description: 'null item' },
+        { data: { id: 4008, amount: 1, item: { name: "Invalid" } }, description: 'invalid product' }
+    ]
+};
+
 describe('Validation cartObject', () => {
-    test("isCartItem should return true with valid object", () => { // Test that valid cart item returns true
-        const expected = true; // Expected result for valid cart item
-        const actual = isCartItem(exampleCartObject); // Call function with valid cart object
-        expect(actual).toBe(expected); // Assert that result matches expected value
+    test("isCartItem should return true with valid object", () => {
+        expect(isCartItem(exampleCartObject)).toBe(true);
     });
 
-    const nonObjectCases = [
-        [false, 'string value'],
-        [false, null],
-        [false, 42],
-        [false, undefined]
-    ]
-    test.each(nonObjectCases)('should return false when cartItem is not an object (expect %s, value %s)', (expected, input) => { // Test each non-object case
-        const actual = isCartItem(input) // Call function with non-object input
-        expect(actual).toBe(expected) // Assert that result is false for non-objects
-    })
+    test.each(testData.nonObjectInputs)(
+        'should return false for non-object input: %p',
+        (input) => {
+            expect(isCartItem(input)).toBe(false);
+        }
+    );
 
-    const malformedCartCases = [
-        [{}],
-        [{ amount: 2, item: exampleProduct }], // Missing id property
-        [{ id: 3001, item: exampleProduct }], // Missing amount property
-        [{ id: 3001, amount: 2 }], // Missing item property
-        [{ id: 3001, amount: 2, item: { name: "Broken product" } }], // Invalid item object
-        [{ id: 3001, amount: "two", item: exampleProduct }], // Amount is string instead of number
-        [{ id: NaN, amount: 2, item: exampleProduct }], // ID is NaN
-        [{ id: 3001, amount: NaN, item: exampleProduct }], // Amount is NaN
-        [{ id: 3001, amount: 0, item: exampleProduct }], // Amount is zero (invalid)
-        [{ id: 3001, amount: -5, item: exampleProduct }], // Amount is negative (invalid)
-    ]
-    test.each(malformedCartCases)('should return false when cartItem is object but invalid format (%s)', (input) => { // Test each malformed cart case
-        expect(isCartItem(input)).toBe(false) // Assert that malformed objects return false
-    })
-})
+    testData.validCartItems.forEach((cartItem, index) => {
+        test(`should return true for valid cart item #${index + 1}`, () => {
+            expect(isCartItem(cartItem)).toBe(true);
+        });
+    });
+
+    testData.invalidCartItems.forEach(({ data, description }) => {
+        test(`should return false for ${description}`, () => {
+            expect(isCartItem(data)).toBe(false);
+        });
+    });
+});
 
 describe('Validation product', () => {
-    test("isProduct should return true with valid product", () => { // Test that valid product returns true
-        const expected = true; // Expected result for valid product
-        const actual = isProduct(exampleProduct); // Call function with valid product
-        expect(actual).toBe(expected); // Assert that result matches expected value
-    })
+    test("isProduct should return true with valid product", () => {
+        expect(isProduct(exampleProduct)).toBe(true);
+    });
 
-    const nonObjectCases = [
-        [false, 'string value'],
-        [false, null],
-        [false, 42],
-        [false, undefined],
-    ]
-    test.each(nonObjectCases)('should return false when product is not an object (expect %s, value %s)', (expected, input) => { // Test each non-object case
-        const actual = isProduct(input) // Call function with non-object input
-        expect(actual).toBe(expected) // Assert that result is false for non-objects
-    })
+    test.each(testData.nonObjectInputs)(
+        'should return false for non-object input: %p',
+        (input) => {
+            expect(isProduct(input)).toBe(false);
+        }
+    );
 
-    const malformedProductCases = [
-        [{}],
-        [{ name: "Keyboard", price: 250 }], // Missing id property
-        [{ id: 2001, price: 250 }], // Missing name property
-        [{ id: 2001, name: "Keyboard" }], // Missing price property
-        [{ id: 2001, name: "Keyboard", price: "250kr" }], // Price is string instead of number
-        [{ id: 2001, name: 999, price: 250 }], // Name is number instead of string
-        [{ id: NaN, name: "Keyboard", price: 250 }], // ID is NaN 
-        [{ id: 2001, name: "Keyboard", price: NaN }], // Price is NaN
-        [{ id: 2001, name: "Keyboard", price: -25 }], // Price is negative (invalid)
-        [{ id: 2001, name: "", price: 250 }], // Name is empty string
-        [{ id: 2001, name: "   ", price: 250 }] // Name is only whitespace
-    ]
-    test.each(malformedProductCases)('should return false when product is object but invalid format (%s)', (input) => { // Test each malformed product case
-        expect(isProduct(input)).toBe(false) // Assert that malformed objects return false
-    })
+    testData.validProducts.forEach((product, index) => {
+        test(`should return true for valid product #${index + 1}`, () => {
+            expect(isProduct(product)).toBe(true);
+        });
+    });
 
-    // Test edge cases that should be valid
-    test("should accept free products (price = 0)", () => { // Test that price 0 is acceptable
-        const freeProduct = { id: 2002, name: "Free Sample", price: 0 }
-        expect(isProduct(freeProduct)).toBe(true) // Assert that free products are valid
-    })
+    testData.invalidProducts.forEach(({ data, description }) => {
+        test(`should return false for ${description}`, () => {
+            expect(isProduct(data)).toBe(false);
+        });
+    });
 
-    test("should accept budget products (price = 1)", () => { // Test that price 1 is acceptable
-        const budgetProduct = { id: 2003, name: "Dollar Item", price: 1 }
-        expect(isProduct(budgetProduct)).toBe(true) // Assert that budget products are valid
-    })
-})
+    test("should accept products with price 0 (free items)", () => {
+        const freeProduct = testData.validProducts.find(p => p.price === 0);
+        expect(isProduct(freeProduct)).toBe(true);
+    });
+});

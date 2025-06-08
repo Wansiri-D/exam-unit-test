@@ -47,9 +47,9 @@ function addToCart(newItem) {
 
 // Mixed error handling: return false for not found, throw for invalid input types
 function removeFromCart(itemId) {
-    // Input validation - throw error for wrong type
-    if (typeof itemId !== 'number') { // Check if itemId parameter is a number
-        throw new Error('Item ID must be a number') // Throw error if itemId is not a number
+    // Input validation - throw error for wrong type (including boolean and decimal)
+    if (typeof itemId !== 'number' || !Number.isInteger(itemId)) { // Check if itemId is an integer number
+        throw new Error('Item ID must be a number') // Throw error if itemId is not an integer
     }
     
     const itemIndex = cart.findIndex(item => item.id === itemId) // Find index of cart item with matching ID
@@ -64,8 +64,8 @@ function removeFromCart(itemId) {
 // Mixed error handling: throw for invalid input, return false for not found
 function editCart(itemId, newValues) {
     // Input validation - throw errors for invalid input types
-    if (typeof itemId !== 'number') { // Check if itemId parameter is a number
-        throw new Error('Item ID must be a number') // Throw error if itemId is not a number
+    if (typeof itemId !== 'number' || !Number.isInteger(itemId)) { // Check if itemId is an integer number
+        throw new Error('Item ID must be a number') // Throw error if itemId is not an integer
     }
     
     if (typeof newValues !== "object" || newValues === null) { // Check if newValues is a valid object
@@ -91,7 +91,7 @@ function editCart(itemId, newValues) {
 }
 
 function clearCart() {
-    cart = []
+    cart = [] // Reset cart to empty array, removing all items
 }
 
-export { getCartItemCount, addToCart, clearCart, getItem, getCartValue, removeFromCart, editCart }
+export { getCartItemCount, addToCart, clearCart, getItem, getCartValue, removeFromCart, editCart } // Export all functions for use in other modules
